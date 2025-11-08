@@ -15,7 +15,7 @@ data:
   data_version: 1
   
   # Dataset info
-  total_images: 300  # Your collected images
+  total_images: 352  # Your collected images
   num_people: 4      # Number of different subjects
   num_classes: 5     # Number of emotions
   
@@ -29,6 +29,16 @@ data:
   val_size: 0.1      # 10% for validation
   test_size: 0.1     # 10% for testing
   random_state: 42   # For reproducibility
+
+  # Class distribution (your actual data)
+  class_distribution:
+    angry: 51
+    happy: 102
+    neutral: 80
+    sad: 77
+    surprise: 42
+
+  
   
   # Class names (your emotions)
   classes:
