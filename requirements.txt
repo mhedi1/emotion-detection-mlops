@@ -1,0 +1,42 @@
+# Core Data Science
+numpy
+pandas
+
+# Computer Vision & Image Processing
+Pillow
+opencv-python
+albumentations
+
+# Deep Learning 
+tensorflow
+
+# MLOps Tools 
+mlflow
+dvc
+dvc-gs
+
+# Configuration
+pyyaml
+python-dotenv
+
+# API (Deployment)
+flask
+flask-cors
+Werkzeug
+
+# Utilities
+tqdm
+requests
+
+# Visualization
+matplotlib
+seaborn
+
+# ML Utilities
+scikit-learn
+
+# Testing
+pytest
+
+# Additional utilities for images
+#imutils

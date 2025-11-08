@@ -1,0 +1,110 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# DVC
+.dvc/cache/
+.dvc/tmp/
+.dvc/plots/
+
+# Image Data (tracked by DVC, not Git!)
+data/raw/*.jpg
+data/raw/*.jpeg
+data/raw/*.png
+data/raw/*/*.jpg
+data/raw/*/*.jpeg
+data/raw/*/*.png
+data/processed/*.jpg
+data/processed/*.jpeg
+data/processed/*.png
+data/processed/*/*.jpg
+data/processed/*/*.jpeg
+data/processed/*/*.png
+
+# Models (tracked by DVC, not Git!)
+models/saved_models/*.h5
+models/saved_models/*.keras
+models/saved_models/*.pt
+models/saved_models/*.pth
+models/saved_models/*.pkl
+models/checkpoints/*.h5
+models/checkpoints/*.ckpt
+
+# Logs
+logs/*.log
+logs/*.txt
+*.log
+
+# Environment variables
+.env
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter Notebooks (if you use them later)
+.ipynb_checkpoints/
+*.ipynb
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# TensorFlow/PyTorch specific
+*.h5
+*.pb
+checkpoint
+saved_model/
+
+# Data augmentation outputs (keep in processed)
+!data/processed/
