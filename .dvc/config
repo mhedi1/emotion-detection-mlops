@@ -1,0 +1,4 @@
+[core]
+    remote = gcs_storage
+['remote "gcs_storage"']
+    url = gs://emotion-detection-mlops-data/dvc-storage
