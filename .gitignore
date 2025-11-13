@@ -43,28 +43,13 @@ mlartifacts/
 .dvc/tmp/
 .dvc/plots/
 
-# Image Data (tracked by DVC, not Git!)
-data/raw/*.jpg
-data/raw/*.jpeg
-data/raw/*.png
-data/raw/*/*.jpg
-data/raw/*/*.jpeg
-data/raw/*/*.png
-data/processed/*.jpg
-data/processed/*.jpeg
-data/processed/*.png
-data/processed/*/*.jpg
-data/processed/*/*.jpeg
-data/processed/*/*.png
+# Data - tracked by DVC, not Git!
+data/raw/
+data/processed/
 
-# Models (tracked by DVC, not Git!)
-models/saved_models/*.h5
-models/saved_models/*.keras
-models/saved_models/*.pt
-models/saved_models/*.pth
-models/saved_models/*.pkl
-models/checkpoints/*.h5
-models/checkpoints/*.ckpt
+# Models - tracked by DVC, not Git!
+models/saved_models/
+models/checkpoints/
 
 # Logs
 logs/*.log
@@ -90,7 +75,7 @@ desktop.ini
 htmlcov/
 .tox/
 
-# Jupyter Notebooks (if you use them later)
+# Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb
 
@@ -105,6 +90,3 @@ htmlcov/
 *.pb
 checkpoint
 saved_model/
-
-# Data augmentation outputs (keep in processed)
-!data/processed/
