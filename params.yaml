@@ -11,36 +11,27 @@ project:
 # DATA CONFIGURATION
 # ============================================
 data:
-  # Data version (increment when data changes)
   data_version: 1
+  total_images: 351
+  num_people: 4
+  num_classes: 5
   
-  # Dataset info
-  total_images: 351  # Your collected images
-  num_people: 4      # Number of different subjects
-  num_classes: 5     # Number of emotions
+  image_size: [224, 224]
+  color_mode: "rgb"
+  channels: 3
   
-  # Image settings
-  image_size: [224, 224]  # Width x Height (standard for CNNs)
-  color_mode: "rgb"        # RGB color images
-  channels: 3              # 3 channels (R, G, B)
+  train_size: 0.8
+  val_size: 0.1
+  test_size: 0.1
+  random_state: 42
   
-  # Data split ratios
-  train_size: 0.8    # 80% for training
-  val_size: 0.1      # 10% for validation
-  test_size: 0.1     # 10% for testing
-  random_state: 42   # For reproducibility
-
-  # Class distribution (your actual data)
   class_distribution:
     angry: 51
     happy: 102
     neutral: 80
     sad: 76
     surprise: 42
-
   
-  
-  # Class names (your emotions)
   classes:
     0: "angry"
     1: "happy"
@@ -49,71 +40,51 @@ data:
     4: "surprise"
 
 # ============================================
-# DATA AUGMENTATION (Increase dataset size!)
+# REAL-TIME AUGMENTATION
 # ============================================
-augmentation:
-  enabled: true
-  
-  # Augmentation parameters
-  rotation_range: 20        # Rotate ±20 degrees
-  width_shift_range: 0.2    # Shift horizontally
-  height_shift_range: 0.2   # Shift vertically
-  horizontal_flip: true     # Mirror image
-  zoom_range: 0.2           # Zoom in/out
-  brightness_range: [0.8, 1.2]  # Adjust brightness
-  fill_mode: "nearest"      # How to fill empty pixels
-  
-  # How many augmented versions per image
-  augmentation_factor: 10   # 300 images → 3000 images!
+preprocessing:
+  image_size: [224, 224]
+  use_realtime_augmentation: true
+  augmentation:
+    enabled: true
+    rotation_range: 15
+    horizontal_flip: true
+    width_shift_range: 0.1
+    height_shift_range: 0.1
+    brightness_range: [0.85, 1.15]
+    zoom_range: 0.1
+    fill_mode: "nearest"
 
 # ============================================
 # MODEL CONFIGURATION
 # ============================================
 model:
-  # Model architecture
-  architecture: "EfficientNetB0"  # Options: EfficientNetB0, ResNet50, VGG16, MobileNetV2
-  
-  # Transfer learning
-  pretrained: true           # Use ImageNet weights
-  freeze_base: true          # Freeze base layers initially
-  
-  # Model layers
-  dense_units: 128           # Hidden layer size
-  dropout_rate: 0.5          # Prevent overfitting
-  
-  # Output
-  num_classes: 5             # 5 emotions
-  activation: "softmax"      # For multi-class classification
+  architecture: "EfficientNetB0"
+  pretrained: true
+  freeze_base: true
+  dense_units: 128
+  dropout_rate: 0.5
+  num_classes: 5
+  activation: "softmax"
 
 # ============================================
 # TRAINING CONFIGURATION
 # ============================================
 training:
-  # Training parameters
-  batch_size: 32             # Images per batch
-  epochs: 50                 # Training iterations
+  batch_size: 32
+  epochs: 50
   initial_learning_rate: 0.001
-  
-  # Optimizer
-  optimizer: "adam"          # Adam optimizer
-  
-  # Loss function
-  loss: "categorical_crossentropy"  # For multi-class
-  
-  # Metrics to track
+  optimizer: "adam"
+  loss: "categorical_crossentropy"
   metrics:
     - accuracy
     - precision
     - recall
     - f1_score
-  
-  # Early stopping (prevent overfitting)
   early_stopping:
     enabled: true
-    patience: 10             # Stop if no improvement for 10 epochs
+    patience: 10
     monitor: "val_accuracy"
-  
-  # Model checkpointing (save best model)
   checkpointing:
     enabled: true
     monitor: "val_accuracy"
@@ -124,56 +95,45 @@ training:
 # ============================================
 tracking:
   experiment_name: "emotion_detection"
-  run_name: "efficientnet_custom_dataset_v1"
-  
-  # Tags for organization
+  run_name: "efficientnet_realtime_aug_v1"
   tags:
     dataset: "custom_collected"
-    num_images: "300"
+    num_images: "351"
     num_people: "4"
     model: "EfficientNetB0"
 
 # ============================================
-# API CONFIGURATION (Deployment)
+# API CONFIGURATION
 # ============================================
 api:
   host: "0.0.0.0"
   port: 5000
   debug: false
-  
-  # API endpoints
   endpoints:
-    predict: "/predict"              # Upload image, get emotion
-    predict_batch: "/predict_batch"  # Multiple images
-    health: "/health"                # Check if running
-    model_info: "/model_info"        # Model metadata
-  
-  # Upload settings
-  max_file_size: 5  # MB
+    predict: "/predict"
+    predict_batch: "/predict_batch"
+    health: "/health"
+    model_info: "/model_info"
+  max_file_size: 5
   allowed_extensions: ["jpg", "jpeg", "png"]
 
 # ============================================
 # PATHS
 # ============================================
 paths:
-  # Data
   raw_data: "data/raw"
   processed_data: "data/processed"
-  
-  # Models
   saved_models: "models/saved_models"
   checkpoints: "models/checkpoints"
-  
-  # Outputs
   logs: "logs"
   examples: "examples"
 
 # ============================================
-# GOOGLE CLOUD STORAGE (DVC Remote)
+# DVC CONFIGURATION
 # ============================================
 dvc:
   remote_name: "gcs_storage"
-  bucket_name: "emotion-detection-data"  # You'll create this
+  bucket_name: "emotion-detection-mlops-data"
 
 # ============================================
 # REPRODUCIBILITY
