@@ -2,140 +2,415 @@
 # PROJECT CONFIGURATION
 # ============================================
 project:
-  name: "emotion_detection"
+  name: "emotion_detection_mlops"
   version: "1.0.0"
-  description: "Real-time facial emotion detection with custom dataset"
-  author: "Your Name"
-
+  description: "Production-ready facial emotion detection with MLOps best practices"
+  author: "Hedi"
+  
 # ============================================
 # DATA CONFIGURATION
 # ============================================
 data:
-  data_version: 1
-  total_images: 351
-  num_people: 4
-  num_classes: 5
+  # Custom dataset info
+  custom_dataset:
+    total_images: 351
+    num_people: 4
+    train_size: 276
+    val_size: 37
+    test_size: 38
   
+  # FER2013 dataset info
+  fer2013_dataset:
+    total_images: 14000
+    train_size: 10000
+    val_size: 2000
+    test_size: 2000
+    samples_per_emotion: 2000
+  
+  # Common settings
+  num_classes: 5
   image_size: [224, 224]
   color_mode: "rgb"
   channels: 3
-  
-  train_size: 0.8
-  val_size: 0.1
-  test_size: 0.1
   random_state: 42
   
-  class_distribution:
-    angry: 51
-    happy: 102
-    neutral: 80
-    sad: 76
-    surprise: 42
-  
+  # Class mapping
   classes:
     0: "angry"
     1: "happy"
-    2: "sad"
-    3: "neutral"
+    2: "neutral"
+    3: "sad"
     4: "surprise"
 
 # ============================================
-# REAL-TIME AUGMENTATION
+# PREPROCESSING CONFIGURATION
 # ============================================
 preprocessing:
   image_size: [224, 224]
-  use_realtime_augmentation: true
+  normalization: true
+  normalization_method: "rescale"  # divide by 255
+  
+  # Data augmentation (for training only)
   augmentation:
     enabled: true
-    rotation_range: 15
+    rotation_range: 20              # degrees
     horizontal_flip: true
-    width_shift_range: 0.1
-    height_shift_range: 0.1
-    brightness_range: [0.85, 1.15]
-    zoom_range: 0.1
-    fill_mode: "nearest"
+    width_shift_range: 0.2          # fraction of width
+    height_shift_range: 0.2         # fraction of height
+    brightness_range: [0.8, 1.2]    # brightness factor range
+    zoom_range: 0.1                 # zoom factor
+    fill_mode: "nearest"            # how to fill new pixels
+    
+  # Advanced augmentation (optional)
+  advanced_augmentation:
+    enabled: false
+    cutout: false
+    mixup: false
+    random_erasing: false
 
 # ============================================
 # MODEL CONFIGURATION
 # ============================================
 model:
-  architecture: "EfficientNetB0"
+  # Architecture selection
+  architecture: "MobileNetV2"       # Options: MobileNetV2, EfficientNetB0, ResNet50
+  input_shape: [224, 224, 3]
+  
+  # Transfer learning settings
   pretrained: true
-  freeze_base: true
-  dense_units: 128
-  dropout_rate: 0.5
+  pretrained_weights: "imagenet"
+  freeze_base: true                 # Freeze pre-trained layers
+  
+  # Classification head
+  pooling: "avg"                    # global average pooling
+  dense_units: 128                  # neurons in dense layer
+  dropout_rate: 0.3                 # dropout probability
+  use_batch_norm: false             # batch normalization after dense
+  activation: "relu"                # activation for dense layer
+  final_activation: "softmax"       # output activation
+  
+  # Regularization
+  l2_regularization: 0.01
+  
+  # Output
   num_classes: 5
-  activation: "softmax"
 
 # ============================================
 # TRAINING CONFIGURATION
 # ============================================
 training:
-  batch_size: 32
-  epochs: 50
-  initial_learning_rate: 0.001
+  # Basic settings
+  batch_size: 16                    # safe for 6GB GPU
+  epochs: 30
+  validation_split: 0.0             # we have separate validation set
+  
+  # Optimizer settings
   optimizer: "adam"
+  initial_learning_rate: 0.0001     # small for transfer learning
+  
+  # Adam optimizer parameters
+  adam:
+    beta_1: 0.9
+    beta_2: 0.999
+    epsilon: 1e-07
+  
+  # Loss function
   loss: "categorical_crossentropy"
+  
+  # Metrics to track
   metrics:
-    - accuracy
-    - precision
-    - recall
-    - f1_score
+    - "accuracy"
+    - "precision"
+    - "recall"
+  
+  # Mixed precision training (for GPU optimization)
+  mixed_precision:
+    enabled: true
+    policy: "mixed_float16"
+  
+  # Learning rate schedule
+  learning_rate_schedule:
+    enabled: true
+    method: "reduce_on_plateau"
+    reduce_lr_factor: 0.5           # multiply LR by this when plateau
+    reduce_lr_patience: 5           # epochs to wait before reducing
+    reduce_lr_min: 1e-7            # minimum learning rate
+    reduce_lr_monitor: "val_loss"
+    reduce_lr_mode: "min"
+  
+  # Early stopping
   early_stopping:
     enabled: true
-    patience: 10
+    patience: 10                    # epochs without improvement
     monitor: "val_accuracy"
+    mode: "max"
+    restore_best_weights: true
+    min_delta: 0.001                # minimum change to qualify as improvement
+  
+  # Model checkpointing
   checkpointing:
     enabled: true
     monitor: "val_accuracy"
+    mode: "max"
     save_best_only: true
+    save_weights_only: false        # save entire model
+    verbose: 1
+
+# ============================================
+# EVALUATION CONFIGURATION
+# ============================================
+evaluation:
+  # Metrics to compute
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "confusion_matrix"
+    - "classification_report"
+  
+  # Test-time augmentation
+  tta:
+    enabled: false
+    num_augmentations: 5
+  
+  # Threshold for predictions
+  confidence_threshold: 0.5
 
 # ============================================
 # MLFLOW EXPERIMENT TRACKING
 # ============================================
-tracking:
-  experiment_name: "emotion_detection"
-  run_name: "efficientnet_realtime_aug_v1"
+mlflow:
+  # Tracking settings
+  tracking_uri: "file:./mlruns"     # local tracking
+  experiment_name: "emotion_detection_fer2013"
+  run_name: "mobilenetv2_transfer_learning"
+  
+  # What to log
+  log_params: true
+  log_metrics: true
+  log_model: true
+  log_artifacts: true
+  
+  # Artifacts to save
+  artifacts:
+    - "confusion_matrix.png"
+    - "training_history.png"
+    - "model_architecture.png"
+    - "classification_report.txt"
+  
+  # Tags
   tags:
-    dataset: "custom_collected"
-    num_images: "351"
-    num_people: "4"
-    model: "EfficientNetB0"
+    model: "MobileNetV2"
+    dataset: "FER2013 + Custom"
+    framework: "TensorFlow"
+    task: "emotion_detection"
 
 # ============================================
-# API CONFIGURATION
-# ============================================
-api:
-  host: "0.0.0.0"
-  port: 5000
-  debug: false
-  endpoints:
-    predict: "/predict"
-    predict_batch: "/predict_batch"
-    health: "/health"
-    model_info: "/model_info"
-  max_file_size: 5
-  allowed_extensions: ["jpg", "jpeg", "png"]
-
-# ============================================
-# PATHS
+# PATHS CONFIGURATION
 # ============================================
 paths:
+  # Data paths
   raw_data: "data/raw"
   processed_data: "data/processed"
+  fer2013_data: "data/fer2013_subset"
+  external_data: "data/external"
+  
+  # Model paths
   saved_models: "models/saved_models"
   checkpoints: "models/checkpoints"
+  
+  # Logging paths
   logs: "logs"
-  examples: "examples"
+  tensorboard_logs: "logs/tensorboard"
+  mlflow_logs: "mlruns"
+  
+  # Output paths
+  outputs: "outputs"
+  predictions: "outputs/predictions"
+  visualizations: "outputs/visualizations"
 
 # ============================================
-# DVC CONFIGURATION
+# DEPLOYMENT CONFIGURATION
 # ============================================
-dvc:
-  remote_name: "gcs_storage"
-  bucket_name: "emotion-detection-mlops-data"
+deployment:
+  # API settings
+  api:
+    host: "0.0.0.0"
+    port: 8000
+    workers: 1
+    reload: false
+  
+  # Model serving
+  model_path: "models/saved_models/fer2013_final.keras"
+  preprocessing_required: true
+  
+  # Inference settings
+  batch_inference: false
+  max_batch_size: 32
+  
+  # Performance
+  cache_model: true
+  use_gpu: true
+
+# ============================================
+# MONITORING AND LOGGING
+# ============================================
+monitoring:
+  # TensorBoard
+  use_tensorboard: true
+  tensorboard_update_freq: "epoch"  # or 'batch'
+  tensorboard_histogram_freq: 1
+  tensorboard_write_graph: true
+  tensorboard_write_images: false
+  
+  # Logging level
+  log_level: "INFO"                 # DEBUG, INFO, WARNING, ERROR
+  
+  # Save outputs
+  save_training_plots: true
+  save_model_architecture: true
+  save_predictions: true
+  save_confusion_matrix: true
+
+# ============================================
+# VISUALIZATION CONFIGURATION
+# ============================================
+visualization:
+  # Plot settings
+  plot_style: "seaborn"
+  figure_size: [10, 8]
+  dpi: 100
+  
+  # Colors for each emotion
+  emotion_colors:
+    angry: "#FF6B6B"      # Red
+    happy: "#4ECDC4"      # Cyan
+    neutral: "#95E1D3"    # Light green
+    sad: "#6C5CE7"        # Purple
+    surprise: "#FFA502"   # Orange
+  
+  # Confusion matrix settings
+  confusion_matrix:
+    normalize: true
+    cmap: "Blues"
+    show_values: true
 
 # ============================================
 # REPRODUCIBILITY
 # ============================================
-seed: 42
+reproducibility:
+  seed: 42
+  deterministic: true
+  
+  # TensorFlow specific
+  tf_deterministic_ops: true
+  tf_cudnn_deterministic: true
+
+# ============================================
+# HARDWARE CONFIGURATION
+# ============================================
+hardware:
+  # GPU settings
+  gpu:
+    enabled: true
+    device_id: 0
+    memory_growth: true             # don't allocate all GPU memory at once
+    memory_limit: 6144              # MB (6GB)
+  
+  # CPU settings
+  cpu:
+    num_threads: 4
+    inter_op_threads: 2
+    intra_op_threads: 2
+
+# ============================================
+# DATA VERSIONING (DVC)
+# ============================================
+dvc:
+  remote: "myremote"
+  remote_url: "gs://your-bucket-name"  # Update with your GCS bucket
+  auto_push: false
+  track_data: true
+  track_models: true
+
+# ============================================
+# EXPERIMENT VARIATIONS
+# ============================================
+experiments:
+  # Baseline experiment
+  baseline:
+    name: "baseline_mobilenetv2"
+    learning_rate: 0.0001
+    batch_size: 16
+    epochs: 30
+  
+  # Higher learning rate experiment
+  higher_lr:
+    name: "mobilenetv2_lr_0001"
+    learning_rate: 0.001
+    batch_size: 16
+    epochs: 30
+  
+  # Larger batch size experiment
+  larger_batch:
+    name: "mobilenetv2_batch32"
+    learning_rate: 0.0001
+    batch_size: 32
+    epochs: 30
+
+# ============================================
+# CUSTOM DATASET TESTING
+# ============================================
+custom_testing:
+  test_on_custom: true
+  custom_data_path: "data/processed"
+  save_predictions: true
+  generate_report: true
+  
+  # Generalization metrics
+  acceptable_gap: 0.05              # max acceptable accuracy gap (5%)
+  target_accuracy: 0.75             # minimum acceptable accuracy
+
+# ============================================
+# INFERENCE CONFIGURATION
+# ============================================
+inference:
+  # Input processing
+  resize_method: "bilinear"
+  normalize: true
+  
+  # Output processing
+  top_k: 3                          # return top 3 predictions
+  confidence_threshold: 0.3         # minimum confidence to report
+  
+  # Performance
+  benchmark_mode: false
+  profile_inference: false
+
+# ============================================
+# METADATA
+# ============================================
+metadata:
+  created_date: "2025-01-20"
+  last_modified: "2025-01-20"
+  version_history:
+    - version: "1.0.0"
+      date: "2025-01-20"
+      changes: "Initial production configuration"
+  
+  # Dataset sources
+  data_sources:
+    custom:
+      source: "Self-collected mobile photos"
+      collection_date: "2025-04"
+      num_images: 351
+    fer2013:
+      source: "Kaggle FER2013 dataset"
+      url: "https://www.kaggle.com/datasets/msambare/fer2013"
+      num_images: 14000
+  
+  # Project links
+  links:
+    github: "https://github.com/mhedi1/emotion-detection-mlops"
+    documentation: "README.md"
